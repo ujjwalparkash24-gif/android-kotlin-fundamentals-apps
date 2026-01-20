@@ -64,11 +64,190 @@ class MainActivity : AppCompatActivity() {
             invalidateAll()
             nicknameEdit.visibility = View.GONE
             doneButton.visibility = View.GONE
-            nicknameText.visibility = View.VISIBLE
-        }
+            nicknameText.visibility = View.VIS
 
         // Hide the keyboard.
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }package com.example.aiassistan
+import android.content.Intent
+import android.os.Bundle
+import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import java.util.*
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var tts: TextToSpeech
+    private lateinit var input: EditText
+    private lateinit var output: TextView
+    private lateinit var speakBtn: Button
+    private lateinit var sendBtn: Button
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        input = findViewById(R.id.userInput)
+        output = findViewById(R.id.resultText)
+        speakBtn = findViewById(R.id.voiceBtn)
+        sendBtn = findViewById(R.id.sendBtn)
+
+        // ---------- TEXT-TO-SPEECH (TTS) ----------
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts.language = Locale.US   // Hindi = Locale("hi","IN")
+            }
+        }
+
+        // ---------- VOICE INPUT (STT) ----------
+        speakBtn.setOnClickListener {
+            val speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US") // Hindi = "hi-IN"
+            startActivityForResult(speechIntent, 100)
+        }
+
+        // ---------- SEND TO AI ----------
+        sendBtn.setOnClickListener {
+            val userText = input.text.toString()
+
+            if (userText.isEmpty()) return@setOnClickListener
+
+            // Yaha AI ko bhejna hota hai (API call)
+            // Filhal dummy response bhej deta hoon:
+            val aiReply = "Maine suna: $userText"
+
+            output.text = aiReply
+            speakOut(aiReply)
+        }
+    }
+
+    // ---------- RESULT FROM SPEECH ----------
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+            val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val text = result?.get(0).toString()
+
+            input.setText(text)
+            sendBtn.performClick()
+        }
+    }
+
+    // ---------- SPEAK ----------
+    private fun speakOut(text: String) {
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+    }
+}package com.example.aiassistant
+
+import android.content.Intent
+import android.os.Bundle
+import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import java.util.*
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var tts: TextToSpeech
+    private lateinit var input: EditText
+    private lateinit var output: TextView
+    private lateinit var speakBtn: Button
+    private lateinit var sendBtn: Button
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        input = findViewById(R.id.userInput)
+        output = findViewById(R.id.resultText)
+        speakBtn = findViewById(R.id.voiceBtn)
+        sendBtn = findViewById(R.id.sendBtn)
+
+        // ---------- TEXT-TO-SPEECH (TTS) ----------
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                tts.language = Locale.US   // Hindi = Locale("hi","IN")
+            }
+        }
+
+        // ---------- VOICE INPUT (STT) ----------
+        speakBtn.setOnClickListener {
+            val speechIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            speechIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US") // Hindi = "hi-IN"
+            startActivityForResult(speechIntent, 100)
+        }
+
+        // ---------- SEND TO AI ----------
+        sendBtn.setOnClickListener {
+            val userText = input.text.toString()
+
+            if (userText.isEmpty()) return@setOnClickListener
+
+            // Yaha AI ko bhejna hota hai (API call)
+            // Filhal dummy response bhej deta hoon:
+            val aiReply = "Maine suna: $userText"
+
+            output.text = aiReply
+            speakOut(aiReply)
+        }
+    }
+
+    // ---------- RESULT FROM SPEECH ----------
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+            val result = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val text = result?.get(0).toString()
+
+            input.setText(text)
+            sendBtn.performClick()
+        }
+    }
+
+    // ---------- SPEAK ----------
+    private fun speakOut(text: String) {
+        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
     }
 }
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/userInput"
+        android:hint="Say something..."
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/voiceBtn"
+        android:text="🎙 Speak"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/sendBtn"
+        android:text="Send"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/resultText"
+        android:textSize="17sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>
